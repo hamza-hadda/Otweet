@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 from django.db import models
 
 from django.contrib.auth.models import (
-    BaseUserManager, AbstractBaseUser
+    BaseUserManager, AbstractUser
 )
 
 # Create your models here.
 class UserManager(BaseUserManager):
-    def create_user(self, username,email, password=None, is_admin=False,is_staff=False):
+    def create_user(self, username, email, password, is_admin=False,is_staff=False):
         """
         Creates and saves a User with the given email and password.
         """
@@ -49,7 +49,8 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class User(AbstractBaseUser):
+
+class User(AbstractUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
@@ -59,13 +60,16 @@ class User(AbstractBaseUser):
     active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False) # a admin user; non super-user
     admin = models.BooleanField(default=False) # a superuser
+    birth_date = models.DateTimeField(null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] # Email & Password are required by default.
+
+    @property
     def get_full_name(self):
         # The user is identified by their email address
-        return self.email
+        return "{} {}".format(self.first_name, self.last_name)
 
     def get_short_name(self):
         # The user is identified by their email address
@@ -98,8 +102,11 @@ class User(AbstractBaseUser):
     def is_active(self):
         "Is the user active?"
         return self.active
-class Profile(models.Model) :
-    user = models.OneToOneField(User)
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
 
 
 
